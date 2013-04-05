@@ -1,0 +1,90 @@
+<!ELEMENT dataset (
+    adresse*,
+    bestellposition*,
+    bestellung*,
+    hibernate_sequence*,
+    kunde*,
+    kunde_rolle*,
+    produkt*,
+    rolle*)>
+
+<!ELEMENT adresse EMPTY>
+<!ATTLIST adresse
+    adresse_id CDATA #REQUIRED
+    plz CDATA #REQUIRED
+    strasse CDATA #IMPLIED
+    ort CDATA #REQUIRED
+    erzeugt CDATA #REQUIRED
+    aktualisiert CDATA #REQUIRED
+    kunde_fk CDATA #REQUIRED
+>
+
+<!ELEMENT bestellposition EMPTY>
+<!ATTLIST bestellposition
+    position_id CDATA #REQUIRED
+    anzahl CDATA #REQUIRED
+    idx CDATA #IMPLIED
+    erzeugt CDATA #REQUIRED
+    aktualisiert CDATA #REQUIRED
+    bestell_fk CDATA #REQUIRED
+    produkt_fk CDATA #REQUIRED
+>
+
+<!ELEMENT bestellung EMPTY>
+<!ATTLIST bestellung
+    bestell_id CDATA #REQUIRED
+    bezahlart CDATA #IMPLIED
+    lieferart CDATA #IMPLIED
+    gesamtpreis CDATA #REQUIRED
+    status CDATA #IMPLIED
+    erzeugt CDATA #REQUIRED
+    aktualisiert CDATA #REQUIRED
+    idx CDATA #IMPLIED
+    kunde_fk CDATA #REQUIRED
+    version CDATA #IMPLIED
+>
+
+<!ELEMENT hibernate_sequence EMPTY>
+<!ATTLIST hibernate_sequence
+    next_val CDATA #REQUIRED
+>
+
+<!ELEMENT kunde EMPTY>
+<!ATTLIST kunde
+    kunden_id CDATA #REQUIRED
+    name CDATA #REQUIRED
+    vorname CDATA #IMPLIED
+    geschlecht CDATA #IMPLIED
+    registrierdatum CDATA #REQUIRED
+    kundenart CDATA #IMPLIED
+    newsletter CDATA #IMPLIED
+    email CDATA #REQUIRED
+    passwort CDATA #IMPLIED
+    erzeugt CDATA #REQUIRED
+    aktualisiert CDATA #REQUIRED
+    version CDATA #IMPLIED
+    username CDATA #REQUIRED
+>
+
+<!ELEMENT kunde_rolle EMPTY>
+<!ATTLIST kunde_rolle
+    kunde_fk CDATA #REQUIRED
+    rollen_fk CDATA #REQUIRED
+>
+
+<!ELEMENT produkt EMPTY>
+<!ATTLIST produkt
+    produkt_id CDATA #REQUIRED
+    bezeichnung CDATA #REQUIRED
+    preis CDATA #IMPLIED
+    erzeugt CDATA #REQUIRED
+    aktualisiert CDATA #REQUIRED
+    version CDATA #IMPLIED
+>
+
+<!ELEMENT rolle EMPTY>
+<!ATTLIST rolle
+    id CDATA #REQUIRED
+    bezeichnung CDATA #IMPLIED
+>
+

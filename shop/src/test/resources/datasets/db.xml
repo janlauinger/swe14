@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE dataset SYSTEM "db.dtd">
+<dataset>
+  <adresse adresse_id="1" plz="76275" strasse="Brunnenstrasse 100" ort="Ettlingen" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" kunde_fk="1"/>
+  <adresse adresse_id="2" plz="76275" strasse="Hubertsrasse 2" ort="Ettlingen" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" kunde_fk="2"/>
+  <adresse adresse_id="3" plz="11111" strasse="Wagenweg 44" ort="Entenhausen" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" kunde_fk="3"/>
+  <adresse adresse_id="4" plz="76271" strasse="Talbaueralee 8" ort="Karlsruhe" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" kunde_fk="4"/>
+  <adresse adresse_id="5" plz="55555" strasse="Evergreen Terrence 1" ort="Springfield" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" kunde_fk="5"/>
+  <bestellposition position_id="1" anzahl="2" idx="0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" bestell_fk="1" produkt_fk="1"/>
+  <bestellposition position_id="2" anzahl="3" idx="0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" bestell_fk="2" produkt_fk="2"/>
+  <bestellposition position_id="3" anzahl="4" idx="0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" bestell_fk="3" produkt_fk="3"/>
+  <bestellposition position_id="4" anzahl="1" idx="0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" bestell_fk="4" produkt_fk="4"/>
+  <bestellposition position_id="5" anzahl="7" idx="0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" bestell_fk="5" produkt_fk="5"/>
+  <bestellung bestell_id="1" bezahlart="paypal" lieferart="spedition" gesamtpreis="40.0" status="offen" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" idx="0" kunde_fk="1" version="0"/>
+  <bestellung bestell_id="2" bezahlart="kreditkart" lieferart="post" gesamtpreis="16.0" status="geliefert" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" idx="0" kunde_fk="2" version="0"/>
+  <bestellung bestell_id="3" bezahlart="kreditkart" lieferart="post" gesamtpreis="99.0" status="in Lieferung" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" idx="0" kunde_fk="3" version="0"/>
+  <bestellung bestell_id="4" bezahlart="paypal" lieferart="spedition" gesamtpreis="69.0" status="offen" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" idx="0" kunde_fk="4" version="0"/>
+  <bestellung bestell_id="5" bezahlart="paypal" lieferart="spedition" gesamtpreis="2.0" status="in Lieferung" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" idx="0" kunde_fk="5" version="0"/>
+  <kunde kunden_id="1" name="Muster" vorname="Max" geschlecht="m" registrierdatum="2027-03-20" kundenart="p" newsletter="y" email="Max.Muster@fake.de" passwort="test" erzeugt="2012-04-04 00:00:00.0" aktualisiert="2012-04-04 00:00:00.0" version="0" username="muma&#xD;"/>
+  <kunde kunden_id="2" name="Fax" vorname="Fritz" geschlecht="m" registrierdatum="2020-03-20" kundenart="p" newsletter="y" email="Fritz.Max@fakemail.de" passwort="test" erzeugt="2012-04-04 00:00:00.0" aktualisiert="2012-04-04 00:00:00.0" version="0" username="f&#xD;"/>
+  <kunde kunden_id="3" name="Tante" vorname="Emma" geschlecht="w" registrierdatum="2004-03-20" kundenart="g" newsletter="y" email="Emma.Tanke@webb.com" passwort="test" erzeugt="2012-04-04 00:00:00.0" aktualisiert="2012-04-04 00:00:00.0" version="0" username="t&#xD;"/>
+  <kunde kunden_id="4" name="Onkel" vorname="Sam" geschlecht="m" registrierdatum="2001-01-20" kundenart="g" newsletter="y" email="Sam.Onkel@Bau.net" passwort="qUqP5cyxm6YcTAhz05Hph5gvu9M=" erzeugt="2012-04-04 00:00:00.0" aktualisiert="2012-04-04 00:00:00.0" version="0" username="o&#xD;"/>
+  <kunde kunden_id="5" name="Simpson" vorname="Homer" geschlecht="m" registrierdatum="2022-02-20" kundenart="p" newsletter="n" email="Homer.Jay.Simpson@gelb.com" passwort="NWoZK3kTsExUV00Ywo1G5jlUKKs=" erzeugt="2012-04-04 00:00:00.0" aktualisiert="2012-04-04 00:00:00.0" version="0" username="Lisa&#xD;"/>
+  <kunde_rolle kunde_fk="1" rollen_fk="4"/>
+  <kunde_rolle kunde_fk="2" rollen_fk="4"/>
+  <kunde_rolle kunde_fk="3" rollen_fk="3"/>
+  <kunde_rolle kunde_fk="4" rollen_fk="2"/>
+  <kunde_rolle kunde_fk="5" rollen_fk="1"/>
+  <produkt produkt_id="1" bezeichnung="Hammer" preis="2.0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" version="0"/>
+  <produkt produkt_id="2" bezeichnung="Meisel" preis="3.0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" version="0"/>
+  <produkt produkt_id="3" bezeichnung="Holzbalken" preis="15.0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" version="0"/>
+  <produkt produkt_id="4" bezeichnung="Schraube" preis="1.0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" version="0"/>
+  <produkt produkt_id="5" bezeichnung="Nagel" preis="2.0" erzeugt="2006-08-01 00:00:00.0" aktualisiert="2006-08-01 00:00:00.0" version="0"/>
+</dataset>
