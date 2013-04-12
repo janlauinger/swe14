@@ -26,7 +26,7 @@ import de.shop.artikelverwaltung.dao.ArtikelverwaltungDao;
 import de.shop.artikelverwaltung.dao.ArtikelverwaltungDao.FetchType;
 import de.shop.artikelverwaltung.domain.Produkt;
 //import de.shop.artikelverwaltung.service.ProduktValidationException;
-import de.shop.util.ValidationService;
+import de.shop.util.ValidatorProvider;
 
 @Stateless
 @TransactionAttribute(MANDATORY)
@@ -43,7 +43,7 @@ public class Produktverwaltung implements Serializable {
 	private transient Event<Produkt> event;
 	
 	@Inject
-	private ValidationService validationService;
+	private ValidatorProvider ValidatorProvider;
 	
 	public Produkt findProduktById(Long id) {
 		final Produkt produkt = dao.find(id);
@@ -68,7 +68,7 @@ public class Produktverwaltung implements Serializable {
 	}
 	
 	private void validateProdukt(Produkt produkt, Locale locale, Class<?>... groups) {
-	final Validator validator = validationService.getValidator(locale);
+	final Validator validator = ValidatorProvider.getValidator(locale);
 	
 	final Set<ConstraintViolation<Produkt>> violations = validator.validate(produkt, groups);
 	if (violations != null && !violations.isEmpty()) {

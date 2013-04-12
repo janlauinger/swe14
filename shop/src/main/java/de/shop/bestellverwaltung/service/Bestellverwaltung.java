@@ -28,7 +28,7 @@ import de.shop.bestellverwaltung.domain.Bestellung;
 import de.shop.kundenverwaltung.domain.Kunde;
 import de.shop.kundenverwaltung.service.Kundenverwaltung;
 import de.shop.util.Log;
-import de.shop.util.ValidationService;
+import de.shop.util.ValidatorProvider;
 
 @Stateless
 @TransactionAttribute(MANDATORY)
@@ -48,7 +48,7 @@ public class Bestellverwaltung implements Serializable {
 	private transient Event<Bestellung> event;
 	
 	@Inject
-	private ValidationService validationService;
+	private ValidatorProvider ValidatorProvider;
 	
 	public Bestellung findBestellungById(Long id) {
 		final Bestellung bestellung = dao.findBestellungById(id);
@@ -67,7 +67,7 @@ public class Bestellverwaltung implements Serializable {
 	}
 	
 	private void validateBestellung(Bestellung bestellung, Locale locale, Class<?>... groups) {
-	final Validator validator = validationService.getValidator(locale);
+	final Validator validator = ValidatorProvider.getValidator(locale);
 	
 	final Set<ConstraintViolation<Bestellung>> violations = validator.validate(bestellung, groups);
 		if (violations != null && !violations.isEmpty()) {

@@ -51,6 +51,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 //import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.ScriptAssert;
 
@@ -178,6 +180,7 @@ public class Kunde implements java.io.Serializable {
 //	@Version
 	@Column(nullable = false)
 	@Temporal(TIMESTAMP)
+	@JsonIgnore
 	private Date aktualisiert;
 
 	@Column(length = EMAIL_LENGTH_MAX, nullable = false, unique = true)
@@ -186,6 +189,7 @@ public class Kunde implements java.io.Serializable {
 
 	@Column(nullable = false)
 	@Temporal(TIMESTAMP)
+	@JsonIgnore
 	private Date erzeugt;
 
 	private String geschlecht;
@@ -202,7 +206,7 @@ public class Kunde implements java.io.Serializable {
 
 	private Boolean newsletter;
 
-	@Column(length = PASSWORT_LENGTH_MAX)
+	@Column(length = PASSWORT_LENGTH_MAX)	
 	private String passwort;
 
 //    @Temporal(TemporalType.DATE)
@@ -225,7 +229,7 @@ public class Kunde implements java.io.Serializable {
 	@OneToMany
 	@JoinColumn(name = "kunde_fk", nullable = false)
 	@OrderColumn(name = "idx", nullable = false)
-	@XmlTransient
+	@JsonIgnore
 	private List<Bestellung> bestellungen;
 	
 	@Transient
@@ -239,7 +243,7 @@ public class Kunde implements java.io.Serializable {
     @OneToOne(cascade = { PERSIST, REMOVE }, mappedBy = "kunde")
 	@Valid
 	@NotNull(message = "{kundenverwaltung.kunde.adresse.notNull}")
-	@XmlElement(name = "adresse")
+    @JsonIgnore(name = "adresse")
 	private Adresse adresse;
 
     @PrePersist

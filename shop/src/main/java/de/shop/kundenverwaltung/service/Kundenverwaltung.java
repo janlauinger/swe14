@@ -32,7 +32,7 @@ import de.shop.kundenverwaltung.dao.KundenverwaltungDao.Order;
 import de.shop.kundenverwaltung.domain.Kunde;
 import de.shop.kundenverwaltung.domain.PasswordGroup;
 import de.shop.util.IdGroup;
-import de.shop.util.ValidationService;
+import de.shop.util.ValidatorProvider;
 
 @Stateless
 @TransactionAttribute(MANDATORY)
@@ -53,7 +53,7 @@ public class Kundenverwaltung implements Serializable {
 //	private transient Event<Kunde> event;
 	
 	@Inject
-	private ValidationService validationService;
+	private ValidatorProvider ValidatorProvider;
 
 	public List<Kunde> findAllKunden(FetchType fetch, Order order) {
 		final List<Kunde> kunden = dao.findAllKunden(fetch, order);
@@ -93,7 +93,7 @@ public class Kundenverwaltung implements Serializable {
 	}
 	
 	private void validateKundeId(Long id, Locale locale) {
-		final Validator validator = validationService.getValidator(locale);
+		final Validator validator = ValidatorProvider.getValidator(locale);
 		final Set<ConstraintViolation<Kunde>> violations = validator.validateValue(Kunde.class,
 				                                                                           "id",
 				                                                                           id,
@@ -136,7 +136,7 @@ public class Kundenverwaltung implements Serializable {
 	}
 	
 	private void validateKunde(Kunde kunde, Locale locale, Class<?>... groups) {
-		final Validator validator = validationService.getValidator(locale);
+		final Validator validator = ValidatorProvider.getValidator(locale);
 		
 		final Set<ConstraintViolation<Kunde>> violations = validator.validate(kunde, groups);
 		if (!violations.isEmpty()) {
