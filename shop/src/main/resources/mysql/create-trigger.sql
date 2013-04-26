@@ -1,4 +1,0 @@
-USE ${dbname.mysql}
-;
-
-	

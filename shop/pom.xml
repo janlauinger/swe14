@@ -68,14 +68,14 @@
 	
 	<developers>
 		<developer>
-			<id>Jan.Lauinger</id>
-			<name>Jan Lauinger</name>
-			<email>laja1011@HS-Karlsruhe.de</email>
+			<id>Juergen.Zimmermann</id>
+			<name>J&#252;rgen Zimmermann</name>
+			<email>Juergen.Zimmermann@HS-Karlsruhe.de</email>
 			<url>http://www.iwi.hs-karlsruhe.de</url>
 			<organization>Hochschule Karlsruhe</organization>
 			<organizationUrl>http://www.iwi.hs-karlsruhe.de</organizationUrl>
 			<roles>
-				<role>Student</role>
+				<role>Dozent</role>
 			</roles>
 			<timezone>+1</timezone>     <!-- relativ zu GMT -->
 			<properties>

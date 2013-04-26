@@ -1,0 +1,9 @@
+-- ===============================================================================
+-- Jede SQL-Anweisung muss in genau 1 Zeile
+-- Kommentare durch -- am Zeilenanfang
+-- ===============================================================================
+INSERT INTO artikel (idartikel,bezeichnung,beschreibung,marke,bildlink,preis,einkaufspreis,groesse,farbe,geschlecht,jahreszeit,typ,anzahl,erzeugt,aktualisiert,aktiv,version) VALUES (2000,'Jacke','Eine warme Jacke mit vielen Taschen','Adidas',null,89.99,40.00,'XL','schwarz','m','w','Oberbekleidung',25,'03.04.2013 00:00:00','03.04.2013 00:00:00',1,1);
+INSERT INTO artikel (idartikel,bezeichnung,beschreibung,marke,bildlink,preis,einkaufspreis,groesse,farbe,geschlecht,jahreszeit,typ,anzahl,erzeugt,aktualisiert,aktiv,version) VALUES (2001,'T-Shirt','T-Shirt mit Totenkopfaudruck','JimD',null,19.99,7.99,'M','grün','m','s','Oberbekleidung',45,'03.04.2013 00:00:00','03.04.2013 00:00:00',1,1);
+INSERT INTO artikel (idartikel,bezeichnung,beschreibung,marke,bildlink,preis,einkaufspreis,groesse,farbe,geschlecht,jahreszeit,typ,anzahl,erzeugt,aktualisiert,aktiv,version) VALUES (2002,'T-Shirt','T-Shirt mit Mustern','Oliver X',null,19.99,6.99,'S','pink','w','s','Oberbekleidung',55,'03.04.2013 00:00:00','03.04.2013 00:00:00',1,1);
+INSERT INTO artikel (idartikel,bezeichnung,beschreibung,marke,bildlink,preis,einkaufspreis,groesse,farbe,geschlecht,jahreszeit,typ,anzahl,erzeugt,aktualisiert,aktiv,version) VALUES (2003,'Bikini','fuer Sommer, Sonne, Strand','Babette Boredaux',null,29.99,12.99,'DD','rot/weiß','w','s','Bademode',15,'03.04.2013 00:00:00','03.04.2013 00:00:00',1,1);
+INSERT INTO artikel (idartikel,bezeichnung,beschreibung,marke,bildlink,preis,einkaufspreis,groesse,farbe,geschlecht,jahreszeit,typ,anzahl,erzeugt,aktualisiert,aktiv,version) VALUES (2004,'Schuhe','Warme Schuhe fuer den kommenden Winter','Adidas',null,59.99,24.99,'41','schwarz','m','h','Schuh',5,'03.04.2013 00:00:00','03.04.2013 00:00:00',1,1);

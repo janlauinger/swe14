@@ -1,52 +1,42 @@
 package de.shop.bestellverwaltung.domain;
 
-import static de.shop.util.Constants.ERSTE_VERSION;
 import static de.shop.util.Constants.KEINE_ID;
 import static de.shop.util.Constants.MIN_ID;
-import static java.util.logging.Level.FINEST;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.TemporalType.TIMESTAMP;
-import static javax.xml.bind.annotation.XmlAccessType.FIELD;
 
 import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
-import javax.persistence.Cacheable;
+import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
+import javax.persistence.OrderColumn;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-//import javax.persistence.Table;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.Transient;
 import javax.persistence.Version;
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import de.shop.kundenverwaltung.domain.Kunde;
@@ -54,244 +44,225 @@ import de.shop.util.IdGroup;
 import de.shop.util.PreExistingGroup;
 
 
-/**
- * The persistent class for the bestellung database table.
- * 
- */
 @Entity
-//@Table(name = "bestellung")
+@Table(name = "bestellung")
 @NamedQueries({
-	@NamedQuery(name = Bestellung.FIND_BESTELLUNGEN_BY_KUNDE,
-				query = "SELECT b FROM Bestellung b " 
-						+ "WHERE b.kunde.kundenId = :" + Bestellung.PARAM_KUNDEID),					
-	@NamedQuery(name = Bestellung.FIND_BESTELLUNGEN_BY_KUNDE_JOIN_POSITIONEN,	
-				query = "SELECT p FROM Bestellung b JOIN b.bestellpositionen p " 
-						+ "WHERE b.bestellId = :" + Bestellung.PARAM_KUNDEID),
-	@NamedQuery(name = Bestellung.FIND_BESTELLUNG_BY_PREIS,
-				query = "SELECT b FROM Bestellung b WHERE b.gesamtpreis >= :" + Bestellung.PARAM_PREIS 
-						+ " ORDER BY b.gesamtpreis desc")
+	@NamedQuery(name  = Bestellung.FIND_BESTELLUNG_BY_ID,
+            	query = "SELECT b"
+                        + " FROM     Bestellung b"
+						+ " WHERE    b.idBestellung LIKE :" + Bestellung.PARAM_ID_BESTELLUNG),
+	@NamedQuery(name = Bestellung.FIND_ALL_BESTELLUNGEN,
+				query = "SELECT b"
+						+ " FROM Bestellung b"),
+	@NamedQuery(name = Bestellung.FIND_ALL_BESTELLUNGEN_ORDER_BY_ID,
+				query = "SELECT b"
+						+ " FROM Bestellung b"
+						+ " ORDER BY b.id"),
+	@NamedQuery(name = Bestellung.FIND_ALL_BESTELLUNGEN_FETCH_KUNDE,
+				query = "SELECT DISTINCT b"
+						+ " FROM Bestellung b"
+						+ " LEFT JOIN FETCH b.kunde"),
+	@NamedQuery(name = Bestellung.FIND_BESTELLUNG_BY_ID_FETCH_KUNDE,
+				query = "SELECT  DISTINCT b"
+						+ " FROM Bestellung b LEFT JOIN FETCH b.kunde"
+						+ " WHERE b.idBestellung LIKE :" + Bestellung.PARAM_ID_BESTELLUNG)
 })
-@Cacheable
-@XmlRootElement(name = "bestellung")
-@XmlAccessorType(FIELD)
+
 public class Bestellung implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private static final Logger LOGGER = Logger.getLogger(
-			MethodHandles.lookup().lookupClass().getName());
+	
+	private static final long serialVersionUID = -535070455702712931L;
+	
+	public static final int ID_LENGTH_MAX = 20;
+	public static final int AKTIV_LENGTH_MAX = 3;
+	public static final int IDX_LENGTH_MAX = 5;
+	private static final int ERSTE_VERSION = 1;
 	
 	private static final String PREFIX = "Bestellung.";
-	public static final String FIND_BESTELLUNGEN_BY_KUNDE = PREFIX + "findBestellungenByKunde";
-	public static final String FIND_BESTELLUNGEN_BY_KUNDE_JOIN_POSITIONEN = PREFIX 
-								+ "findBestellungenByKundeJoinPositionen";
-	public static final String FIND_BESTELLUNG_BY_PREIS = PREFIX + "findBestellungByPreis";
+	public static final String FIND_ALL_BESTELLUNGEN = PREFIX + "findAllBestellungen";
+	public static final String FIND_ALL_BESTELLUNGEN_ORDER_BY_ID = PREFIX + "findAllBestellungenOrderById";
+	public static final String FIND_ALL_BESTELLUNGEN_FETCH_KUNDE = PREFIX + "findAllBestellungenFetchKunde";
+	public static final String FIND_BESTELLUNG_BY_ID_FETCH_KUNDE = PREFIX + "findBestellungByIdFetchKunde";
+	public static final String FIND_BESTELLUNG_BY_ID = PREFIX + "findBestellungenByID";
+	public static final String PARAM_ID_BESTELLUNG = "idBestellung";
+
+	@Id
+	@GeneratedValue
+	@Column(length = ID_LENGTH_MAX, nullable = false, unique = true, updatable = false)
+	@Min(value = MIN_ID, message = "{bestellverwaltung.bestellung.id.min}", groups = IdGroup.class)
+	private Long idBestellung = KEINE_ID;	
 	
-	public static final String PARAM_KUNDEID = "kunden_id";
-	public static final String PARAM_PREIS = "gesamtpreis";
+	@Transient
+	private URI bestellungUri;
+	
+	@Transient
+	private URI kundeUri;
+	
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "kunde_fk", nullable = false, insertable = false, updatable = false)
+	@NotNull(message = "{bestellverwaltung.bestellung.kunde.notNull}", groups = PreExistingGroup.class)
+	@JsonIgnore
+	private Kunde kunde;
 
-		@Id
-		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		@Column(name = "bestell_id", unique = true, nullable = false, updatable = false)
-		@Min(value = MIN_ID, message = "{bestellverwaltung.bestellung.id.min}", groups = IdGroup.class)
-		@XmlAttribute
-		private Long bestellId = KEINE_ID;
-		
-		@Version
-		@XmlTransient
-		private int version = ERSTE_VERSION;
-		
-//		@Version
-		@Column(nullable = false)
-		@Temporal(TIMESTAMP)
-		@XmlTransient
-		private Date aktualisiert = null;
-		
-		@XmlElement(name = "bezahlart")
-		private String bezahlart;
-		
-		@Column(nullable = false)
-		@Temporal(TIMESTAMP)
-		@XmlTransient
-		private Date erzeugt = null;
+	@OneToMany(fetch = EAGER, cascade = { PERSIST, REMOVE })
+	@JoinColumn(name = "bestellung_fk", nullable = false)
+	@OrderColumn(name = "idx", nullable = false)
+	@NotEmpty(message = "{bestellverwaltung.bestellung.bestellpositionen.notEmpty}")
+	@Valid
+	private List<Bestellposition> bestellpositionen;
+	
+	@Transient
+	@Column(precision = 8, scale = 2)
+	private BigDecimal summe;
+	
+	@Column(nullable = false)
+	private Boolean storno = false;
 
-		private int gesamtpreis;
-		
-		private String lieferart;
+	@Column(nullable = false)
+	@Temporal(TIMESTAMP)
+	@JsonIgnore
+	private Date aktualisiert;
 
-		private String status;
+	@Column(nullable = false)
+	@Temporal(TIMESTAMP)
+	@JsonIgnore
+	private Date erzeugt;
+	
+	@Column(name = "aktiv")
+	private Boolean aktiv = true;
+	
+	@Version
+	@Basic(optional = false)
+	private int version = ERSTE_VERSION;
+	
+	@PrePersist
+	private void prePersist() {	
+		erzeugt = new Date();
+		aktualisiert = new Date();
+	}
+	
+	@PreUpdate
+	private void preUpdate() {	
+		aktualisiert = new Date();
+	}
 
-		//bi-directional many-to-one association to Bestellposition
-		@OneToMany(fetch = FetchType.EAGER, cascade = { PERSIST, REMOVE })
-		@JoinColumn(name = "bestell_fk", nullable = false)
+	public Long getIdBestellung() {
+		return this.idBestellung;
+	}
 
-		@NotEmpty(message = "{bestellverwaltung.bestellung.bestellposition.notEmpty}")
-		@XmlElementWrapper(name = "Bestellpositionen", required =  true)
-		@XmlElement(name = "Bestellposition", required = true)
-		private List<Bestellposition> bestellpositionen;
-		
+	public void setIdBestellung(Long idBestellung) {
+		this.idBestellung = idBestellung;
+	}
+	
+	public Kunde getKunde() {		
+		return kunde;
+	}
+	
+	public void setKunde(Kunde kunde) {
+		this.kunde = kunde;
+	}
+	
+	public void setSumme(BigDecimal summe) {
+		this.summe = summe;
+	}
+	
+	public BigDecimal getSumme() {
+		return this.summe;
+	}
+	
+	public URI getBestellungUri() {
+		return bestellungUri;
+	}
+	
+	public void setBestellungUri(URI bestellungUri) {
+		this.bestellungUri = bestellungUri;
+	}
+	
+	public URI getKundeUri() {
+		return kundeUri;
+	}
+	
+	public void setKundeUri(URI kundeUri) {
+		this.kundeUri = kundeUri;
+	}
+	
+	public Boolean getAktiv() {
+		return this.aktiv;
+	}
 
-		//bi-directional many-to-one association to Kunde
-		@ManyToOne(optional = false)
-		@JoinColumn(name = "kunde_fk", nullable = false, insertable = false, updatable = false)
-		@NotNull (message = "{bestellverwaltung.bestellung.kunde.notNull}", 
-								groups = PreExistingGroup.class)
-		@XmlTransient
-		private Kunde kunde;
-		
-		@Transient
-		@XmlElement(name = "kunde", required = true)
-		private URI kundeUri;
+	public void setAktiv(Boolean aktiv) {
+		this.aktiv = aktiv;
+	}
 
-	    public Bestellung() {
-	    	super();
-	    }
-	    
-		public Bestellung(Kunde kunde, List<Bestellposition> bestellpositionen) {
-			super();
-			this.kunde = kunde;
+	public Date getAktualisiert() {
+		return aktualisiert == null ? null : (Date) aktualisiert.clone();
+	}
+
+	public void setAktualisiert(Date aktualisiert) {
+		this.aktualisiert = aktualisiert == null ? null : (Date) aktualisiert.clone();
+	}
+
+	public Date getErzeugt() {
+		return erzeugt == null ? null : (Date) erzeugt.clone();
+	}
+
+	public void setErzeugt(Date erzeugt) {
+		this.erzeugt = erzeugt == null ? null : (Date) erzeugt.clone();
+	}
+
+	public Boolean getStorno() {
+		return this.storno;
+	}
+
+	public void setStorno(Boolean storno) {
+		this.storno = storno;
+	}
+
+	public List<Bestellposition> getBestellpositionen() {
+		return bestellpositionen == null ? null : Collections.unmodifiableList(bestellpositionen);
+	}
+
+	public void setBestellpositionen(List<Bestellposition> bestellpositionen) {
+		if (this.bestellpositionen == null) {
 			this.bestellpositionen = bestellpositionen;
-		}
-	    
-	    
-	    @PrePersist
-	    private void prePersist() {
-	    	erzeugt = new Date();
-	    	aktualisiert = new Date();
-	    }
-	    
-		@PostPersist
-		private void postPersist() {
-			LOGGER.log(FINEST, "Neue Bestellung mit ID=%d", bestellId);
+			return;
 		}
 		
+		// Wiederverwendung der vorhandenen Collection
+		this.bestellpositionen.clear();
+		if (bestellpositionen != null) {
+			this.bestellpositionen.addAll(bestellpositionen);
+		}
+	}
+	
+	public void addBestellposition(Bestellposition bestellposition) {
+		if (bestellpositionen == null) {
+			this.bestellpositionen = new ArrayList<>();
+		}
+		this.bestellpositionen.add(bestellposition);
+	}
+	
+	public int getVersion() {
+		return version;
+	}
 
-		@PreUpdate
-		private void preUpdate() {
-			aktualisiert = new Date();
-		}
-		
-		@PostUpdate
-		protected void postUpdaate() {
-			LOGGER.log(FINEST, "Bestellung mit ID = {0} aktualisiert:  = {1}", new Object[] {bestellId, version });
-			aktualisiert = new Date();
-		}
+	public void setVersion(int version) {
+		this.version = version;
+	}
 
-
-		public Long getBestellId() {
-			return bestellId;
-		}
-
-		public void setBestellId(Long bestellId) {
-			this.bestellId = bestellId;
-		}
-		
-		public int getVersion() {
-			return version;
-		}
-		
-		public void setVersion(int version) {
-			this.version = version;
-		}
-
-		public Date getAktualisiert() {
-			return aktualisiert == null ? null : (Date) erzeugt.clone();
-		}
-
-		public void setAktualisiert(Date aktualisiert) {
-			this.aktualisiert = aktualisiert == null ? null : (Date)
-					aktualisiert.clone();
-		}
-
-
-		public String getBezahlart() {
-			return this.bezahlart;
-		}
-
-		public void setBezahlart(String bezahlart) {
-			this.bezahlart = bezahlart;
-		}
-
-		public Date getErzeugt() {
-			return erzeugt == null ? null : (Date) erzeugt.clone();
-		}
-
-		public void setErzeugt(Date erzeugt) {
-			this.erzeugt = erzeugt == null ? null : (Date) erzeugt.clone();
-		}
-
-		public Integer getGesamtpreis() {
-			return this.gesamtpreis;
-		}
-
-		public void setGesamtpreis(Integer gesamtpreis) {
-			this.gesamtpreis = gesamtpreis;
-		}
-
-		public String getLieferart() {
-			return this.lieferart;
-		}
-
-		public void setLieferart(String lieferart) {
-			this.lieferart = lieferart;
-		}
-
-		public String getStatus() {
-			return this.status;
-		}
-
-		public void setStatus(String status) {
-			this.status = status;
-		}
-
-		public List<Bestellposition> getBestellpositionen() {
-			if (bestellpositionen == null) {
-			return null; 
-			}
-			return Collections.unmodifiableList(bestellpositionen);
-		}
-
-		public void setBestellpositionen(List<Bestellposition> bestellpositionen) {
-			if (this.bestellpositionen == null) {
-				this.bestellpositionen = bestellpositionen;
-				return;
-			}
-			
-			this.bestellpositionen.clear();
-			if (bestellpositionen != null) {
-				this.bestellpositionen.addAll(bestellpositionen);
-			}
-		}
-
-
-		public Bestellung addBestellposition(Bestellposition bestellposition) {
-			if (bestellpositionen == null) {
-				bestellpositionen = new ArrayList<>();
-			}
-			bestellpositionen.add(bestellposition);
-			return this;
-		}
-		
-		public Kunde getKunde() {
-			return kunde;
-		}
-
-		public void setKunde(Kunde kunde) {
-			this.kunde = kunde;
-		}
-		
-		public URI getKundeUri() {
-			return kundeUri;
-		}
-		
-		public void setKundeUri(URI kundeUri) {
-			this.kundeUri = kundeUri;
-		}
+	@Override
+	public String toString() {
+		return "Bestellung [idBestellung=" + idBestellung + ", storno="
+				+ storno + ", aktualisiert=" + aktualisiert + ", erzeugt="
+				+ erzeugt + ", aktiv=" + aktiv + "]";
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((erzeugt == null) ? 0 : erzeugt.hashCode());
-		result = prime * result + ((kunde == null) ? 0 : kunde.hashCode());
+		result = prime * result + ((aktiv == null) ? 0 : aktiv.hashCode());
+		result = prime * result + ((storno == null) ? 0 : storno.hashCode());
+		result = prime * result + version;
 		return result;
 	}
 
@@ -304,32 +275,18 @@ public class Bestellung implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Bestellung other = (Bestellung) obj;
-		if (erzeugt == null) {
-			if (other.erzeugt != null)
+		if (aktiv == null) {
+			if (other.aktiv != null)
 				return false;
-		}
-		else if (!erzeugt.equals(other.erzeugt))
+		} else if (!aktiv.equals(other.aktiv))
 			return false;
-		if (kunde == null) {
-			if (other.kunde != null)
+		if (storno == null) {
+			if (other.storno != null)
 				return false;
-		}
-		else if (!kunde.equals(other.kunde))
+		} else if (!storno.equals(other.storno))
+			return false;
+		if (version != other.version)
 			return false;
 		return true;
 	}
-
-	@Override
-	public String toString() {
-		return "Bestellung [bestellId=" + bestellId + ", aktualisiert="
-				+ aktualisiert + ", bezahlart=" + bezahlart 
-				+ ", erzeugt=" + erzeugt + ", gesamtpreis=" 
-				+ gesamtpreis + ", lieferart=" + lieferart
-				+ ", status=" + status + "]";
-	}
-
-	public void setValues(Bestellung b) {
-		status = b.status;
-	}
-	
 }

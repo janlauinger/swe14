@@ -1,8 +1,0 @@
-OPTIONS(direct=true)
-UNRECOVERABLE LOAD DATA
-INTO TABLE kunde_rolle
-APPEND
-FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '"' (
-kunde_fk,
-rollen_fk
-)

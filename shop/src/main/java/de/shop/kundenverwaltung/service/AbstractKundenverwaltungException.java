@@ -8,4 +8,8 @@ public abstract class AbstractKundenverwaltungException extends AbstractShopExce
 	public AbstractKundenverwaltungException(String msg) {
 		super(msg);
 	}
+	
+	public AbstractKundenverwaltungException(String msg, Throwable t) {
+		super(msg, t);
+	}
 }

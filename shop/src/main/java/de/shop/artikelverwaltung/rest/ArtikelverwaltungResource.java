@@ -1,100 +1,140 @@
 package de.shop.artikelverwaltung.rest;
 
+import static java.util.logging.Level.FINER;
+import static java.util.logging.Level.FINEST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-import static javax.ws.rs.core.MediaType.TEXT_XML;
 
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.jboss.resteasy.annotations.Form;
+import de.shop.artikelverwaltung.dao.ArtikelDao.OrderType;
+import de.shop.artikelverwaltung.domain.Artikel;
+import de.shop.artikelverwaltung.service.Artikelverwaltung;
+import de.shop.kundenverwaltung.dao.KundeDao.FetchType;
+import de.shop.kundenverwaltung.domain.Kunde;
+import de.shop.util.Log;
+import de.shop.util.NotFoundException;
+import de.shop.util.Transactional;
 
-import de.shop.artikelverwaltung.domain.Produkt;
 
-@Path("/produkte")
-@Produces({ APPLICATION_XML, TEXT_XML, APPLICATION_JSON })
+@Path("/artikel")
+@Produces(APPLICATION_JSON)
 @Consumes
-public interface ArtikelverwaltungResource {
+@RequestScoped
+@Transactional
+@Log
+public class ArtikelverwaltungResource {
 	
-	/**
-	 * Mit der URL /produkte/{id} eines Produktes ermitteln
-	 * @param id ID des Produkts
-	 * @return Objekt mit Produktdaten, falls die ID vorhanden ist
-	 */
-	@GET
-	@Path("{id:[0-9]+}")
-	Produkt findProdukte(@PathParam("id") Long id, @Context UriInfo uriInfo);
+	private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
+	
+	@Inject
+	private Artikelverwaltung av;
+	
+	@Inject
+	private UriHelperArtikel uriHelperArtikel;
+	
+	@PostConstruct
+	private void postConstruct() {
+		LOGGER.log(FINER, "CDI-faehiges Bean {0} wurde erzeugt", this);
+	}
+	
+	@PreDestroy
+	private void preDestroy() {
+		LOGGER.log(FINER, "CDI-faehiges Bean {0} wird geloescht", this);
+	}
 	
 	@GET
-	@Path("{maxpreis:[0-9]+}/maxpreis")
-	List<Produkt> findProdukteByMaxPreis(@PathParam("maxpreis") Integer gespreis, @Context UriInfo uriInfo);
+	public List<Artikel> findArtikelByBezeichnung(@QueryParam("bezeichnung") @DefaultValue("") String bezeichnung) {
+		 List<Artikel> artikel = null;
 	
+		if("".equals(bezeichnung)){
+			artikel = av.findAllArtikel(OrderType.ID);
+		}
+		else{
+			artikel = av.findArtikelByBezeichnung(bezeichnung);
+			if (artikel.isEmpty()) {
+				final String msg = "Kein Artikel gefunden mit Bezeichnung " + bezeichnung;
+				throw new NotFoundException(msg);
+			}
+		}
+		return artikel;
+	}
+		
 	@GET
-	@Path("{id:[0-9]}/Produkt")
-	List<Produkt> findProduktByID(@PathParam("id") Long id, @Context UriInfo uriInfo);
+	@Path("{id:[1-9][0-9]*}")
+	public Artikel findArtikelById(@PathParam("id") Long id) {
+		final Artikel artikel = av.findArtikelById(id);
+		if (artikel == null) {
+			// TODO msg passend zu locale
+			final String msg = "Kein Artikel gefunden mit der ID " + id;
+			throw new NotFoundException(msg);
+		}
+		return artikel;
+	}
 	
-	@GET
-	@Path("{bez:[0-9]}/Produkt")
-	List <Produkt> findProduktByBez(@PathParam("bez") String bez, @Context UriInfo uriInfo);
+	@POST
+	@Consumes(APPLICATION_JSON)
+	@Produces
+	public Response createArtikel(Artikel artikel, @Context UriInfo uriInfo, @Context HttpHeaders headers) {
+		
+		System.out.println("testEintritt: " + artikel.toString() + " ende Artikel. ERROR");
+		final List<Locale> locales = headers.getAcceptableLanguages();
+		final Locale locale = locales.isEmpty() ? Locale.getDefault() : locales.get(0);
+		artikel = av.createArtikel(artikel, locale);
+		LOGGER.log(FINEST, "Artikel: {0}", artikel);
+		System.out.println("test: " + artikel.toString() + " ende Artikel. ERROR");
+		
+		final URI artikelUri = uriHelperArtikel.getUriArtikel(artikel, uriInfo);
+		return Response.created(artikelUri).build();
+	}
 	
 	@PUT
-	@Consumes({ APPLICATION_XML, TEXT_XML })
+	@Consumes(APPLICATION_JSON)
 	@Produces
-	void updateProdukt(Produkt produkt, @Context UriInfo uriInfo,
-			@Context HttpHeaders headers);
-
-	Produkt findProdukt(Long id, UriInfo uriInfo);
+	public void updateArtikel(Artikel artikel, @Context UriInfo uriInfo, @Context HttpHeaders headers) {
+		// Vorhandenen Artikel ermitteln
+		Artikel origArtikel = av.findArtikelById(artikel.getIdArtikel());
+		if (origArtikel == null) {
+			// TODO msg passend zu locale
+			final String msg = "Kein Artikel gefunden mit der ID " + artikel.getIdArtikel();
+			throw new NotFoundException(msg);
+		}
+		LOGGER.log(FINEST, "Artikel vorher: %s", origArtikel);
 	
-	/**
-	 * Mit der URL /produkt per POST anlegen.
-	 * @param produkt neues Produkt
-	 * @return Response-Objekt mit URL des neuen Produktes
-	 */
-	@POST
-	@Consumes({ APPLICATION_XML, TEXT_XML })
-	@Produces
-	Response createProdukt(Produkt produkt, @Context UriInfo uriInfo, @Context HttpHeaders headers);
-//	Response createProdukt(Produkt produkt, @Context UriInfo uriInfo, @Context HttpHeaders headers);
-	
-	/**
-	 * Mit der URL /produkt/form per POST anlegen wie in einem HTML-Formular.
-	 * @param produkt Formular-Objekt mit den Daten des neuen Produktes
-	 * @return Response-Objekt mit URL des neuen Produktes
-	 */
-	@Path("form")
-	@POST
-//	@Consumes(APPLICATION_FORM_URLENCODED)
-	@Produces
-	Response createProdukt(@Form ProduktForm produkt, @Context UriInfo uriInfo, @Context HttpHeaders headers);
-
-//	/**
-//	 * Mit der URL /produkt Produkte per PUT aktualisieren
-//	 * @param produkt zu aktualisierende Daten des Produktes
-//	 */
-//	@PUT
-//	@Consumes({ APPLICATION_XML, TEXT_XML })
-//	@Produces
-//	void updateProdukt(Produkt produkt, @Context UriInfo uriInfo, @Context HttpHeaders headers);
-
-	/**
-	 * Mit der URL /produkt{id} Produkt per DELETE l&ouml;schen
-	 * @param produkt_Id des zu l&ouml;schenden Produktes
-	 */
-	@Path("{id:[0-9]+}")
-	@DELETE
-	@Produces
-	void deleteProdukt(@PathParam("id") Long produktId);
-	
+		// Daten des vorhandenen Artikel ueberschreiben
+		origArtikel.setValues(artikel);
+		LOGGER.log(FINEST, "Artikel nachher: %s", origArtikel);
+		
+		// Update durchfuehren
+		final List<Locale> locales = headers.getAcceptableLanguages();
+		final Locale locale = locales.isEmpty() ? Locale.getDefault() : locales.get(0);
+		artikel = av.updateArtikel(origArtikel, locale);
+		if (artikel == null) {
+			// TODO msg passend zu locale
+			final String msg = "Kein Artikel gefunden mit der ID " + origArtikel.getIdArtikel();
+			throw new NotFoundException(msg);
+		}
+	}
 }

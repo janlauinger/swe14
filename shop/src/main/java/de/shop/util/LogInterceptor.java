@@ -1,13 +1,14 @@
 package de.shop.util;
 
+import static java.util.logging.Level.FINER;
+
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-
-import org.jboss.logging.Logger;
 
 
 /**
@@ -33,21 +34,23 @@ public class LogInterceptor implements Serializable {
 		final String classname = clazz.getName();
 		final Logger logger = Logger.getLogger(classname);
 
-		if (!logger.isDebugEnabled()) {
+		if (!logger.isLoggable(FINER)) {
 			return ctx.proceed();
 		}
 
-		final String methodName = ctx.getMethod().getName();
+		String methodName = ctx.getMethod().getName();
 
 		// getXy, setXy, isXy und toString nicht protokollieren
 		if ((methodName.startsWith("get") || methodName.startsWith("set"))
 			&& Character.isUpperCase(methodName.charAt(CHAR_POST_AFTER_GET_SET))) {
 			return ctx.proceed();
 		}
-		if ((methodName.startsWith("is")) && Character.isUpperCase(methodName.charAt(CHAR_POST_AFTER_IS))) {
+		if ((methodName.startsWith("is")) 
+				&& Character.isUpperCase(methodName.charAt(CHAR_POST_AFTER_IS))) {
 			return ctx.proceed();
 		}
-		if (("toString".equals(methodName)) && Character.isUpperCase(methodName.charAt(CHAR_POST_AFTER_IS))) {
+		if (("toString".equals(methodName)) 
+				&& Character.isUpperCase(methodName.charAt(CHAR_POST_AFTER_IS))) {
 			return ctx.proceed();
 		}
 		
@@ -63,15 +66,31 @@ public class LogInterceptor implements Serializable {
 					sb.append("null");
 				}
 				else {
-					final String paramStr = toString(params[i]);
-					sb.append(paramStr);
+					// TODO Kann man nach FindBug Report rauslöschen, 
+					// da paramClass demnach hier nicht Null wird
+					/*
+					final Class<?> paramClass = params[i].getClass();
+					
+
+					if (paramClass == null) {
+						// primitiver Wert, z.B. int
+						sb.append(params[i]);
+					}
+					
+					else {
+					*/
+						final String paramStr = toString(params[i]);
+						sb.append(paramStr);
+					/*	
+					}
+					*/
 				}
 				sb.append(", ");
 			}
 			final int laenge = sb.length();
 			sb.delete(laenge - 2, laenge - 1);
 		}
-		logger.debug(methodName + " BEGINN" + sb);
+		logger.log(FINER, methodName + " BEGINN" + sb);
 		
 		Object result = null;
 //		try {
@@ -93,11 +112,11 @@ public class LogInterceptor implements Serializable {
 
 		if (result == null) {
 			// Methode vom Typ void oder Rueckgabewert null
-			logger.debug(methodName + " ENDE");
+			logger.log(FINER, methodName + " ENDE");
 		}
 		else {
 			final String resultStr = toString(result);
-			logger.debug(methodName + " ENDE: " + resultStr);
+			logger.log(FINER, methodName + " ENDE: " + resultStr);
 		}
 		
 		return result;
@@ -156,11 +175,12 @@ public class LogInterceptor implements Serializable {
 				final int laenge = sbEnd.length();
 				sbEnd.delete(laenge - 2, laenge - 1);
 			}
-			sbEnd.append(']');
+			sbEnd.append("]");
 			return sbEnd.toString();
 		}
 		
-		// Array von primitiven Werten: byte, short, int, long, ..., float, double, boolean, char
+		// Array von primitiven Werten: byte, short, int, long, 
+		//..., float, double, boolean, char
 		
 		if ("short".equals(componentClass.getName())) {
 			final short[] arr = (short[]) obj;
@@ -177,7 +197,7 @@ public class LogInterceptor implements Serializable {
 			final int laenge = sbEnd.length();
 			if (anzahl > 0) {
 				sbEnd.delete(laenge - 2, laenge - 1);
-				sbEnd.append(']');
+				sbEnd.append("]");
 			}
 			return sbEnd.toString();
 		}
@@ -197,7 +217,7 @@ public class LogInterceptor implements Serializable {
 			final int laenge = sbEnd.length();
 			if (anzahl > 0) {
 				sbEnd.delete(laenge - 2, laenge - 1);
-				sbEnd.append(']');
+				sbEnd.append("]");
 			}
 			return sbEnd.toString();
 		}
@@ -217,7 +237,7 @@ public class LogInterceptor implements Serializable {
 			final int laenge = sbEnd.length();
 			if (anzahl > 0) {
 				sbEnd.delete(laenge - 2, laenge - 1);
-				sbEnd.append(']');
+				sbEnd.append("]");
 			}
 			return sbEnd.toString();
 		}
@@ -242,7 +262,7 @@ public class LogInterceptor implements Serializable {
 				final int laenge = sbEnd.length();
 				sbEnd.delete(laenge - 2, laenge - 1);
 			}
-			sbEnd.append(']');
+			sbEnd.append("]");
 			return sbEnd.toString();
 		}
 		
@@ -262,7 +282,7 @@ public class LogInterceptor implements Serializable {
 				final int laenge = sbEnd.length();
 				sbEnd.delete(laenge - 2, laenge - 1);
 			}
-			sbEnd.append(']');
+			sbEnd.append("]");
 			return sbEnd.toString();
 		}
 
@@ -282,7 +302,7 @@ public class LogInterceptor implements Serializable {
 				final int laenge = sbEnd.length();
 				sbEnd.delete(laenge - 2, laenge - 1);
 			}
-			sbEnd.append(']');
+			sbEnd.append("]");
 			return sbEnd.toString();
 		}
 
@@ -302,7 +322,7 @@ public class LogInterceptor implements Serializable {
 				final int laenge = sbEnd.length();
 				sbEnd.delete(laenge - 2, laenge - 1);
 			}
-			sbEnd.append(']');
+			sbEnd.append("]");
 			return sbEnd.toString();
 		}
 

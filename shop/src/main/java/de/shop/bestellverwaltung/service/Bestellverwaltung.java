@@ -1,128 +1,127 @@
 package de.shop.bestellverwaltung.service;
 
-import static de.shop.util.Dao.QueryParameter.with;
-import static de.shop.util.Constants.KEINE_ID;
-import static javax.ejb.TransactionAttributeType.MANDATORY;
+
+import static java.util.logging.Level.FINER;
+import static java.util.logging.Level.FINEST;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
 import javax.enterprise.event.Event;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.groups.Default;
-//import javax.validation.groups.Default;
 
-import org.jboss.logging.Logger;
-
-import de.shop.bestellverwaltung.dao.BestellverwaltungDao;
+import de.shop.bestellverwaltung.dao.BestellpositionDao;
+import de.shop.bestellverwaltung.dao.BestellungDao;
+import de.shop.bestellverwaltung.dao.BestellungDao.FetchType;
+import de.shop.bestellverwaltung.dao.BestellungDao.OrderType;
 import de.shop.bestellverwaltung.domain.Bestellposition;
 import de.shop.bestellverwaltung.domain.Bestellung;
-//import de.shop.kundenverwaltung.dao.KundenverwaltungDao.FetchType;
 import de.shop.kundenverwaltung.domain.Kunde;
+import de.shop.kundenverwaltung.domain.PasswordGroup;
 import de.shop.kundenverwaltung.service.Kundenverwaltung;
 import de.shop.util.Log;
 import de.shop.util.ValidatorProvider;
 
-@Stateless
-@TransactionAttribute(MANDATORY)
 @Log
 public class Bestellverwaltung implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass());
-	private static final boolean TRACE = LOGGER.isTraceEnabled();
+	private static final long serialVersionUID = 4949585031232145208L;
+	private static final Logger LOGGER = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 	
 	@Inject
-	private BestellverwaltungDao dao;
+	private BestellungDao dao;
 	
-	@Inject 
+	@Inject
+	private BestellpositionDao bpdao;
+	
+	@Inject
 	private Kundenverwaltung kv;
 	
 	@Inject
-	private transient Event<Bestellung> event;
+	private ValidatorProvider validatorProvider;
 	
 	@Inject
-	private ValidatorProvider ValidatorProvider;
+	@NeueBestellung
+	private transient Event<Bestellung> event;
 	
-	public Bestellung findBestellungById(Long id) {
-		final Bestellung bestellung = dao.findBestellungById(id);
-		return bestellung;
+	@PostConstruct
+	private void postConstruct() {
+		LOGGER.log(FINER, "CDI-faehiges Bean {0} wurde erzeugt", this);
 	}
 	
-	public List<Bestellung> findBestellungByPreis(Integer preis) {
-		final List<Bestellung> bestellungen = dao.find(Bestellung.class, Bestellung.FIND_BESTELLUNG_BY_PREIS,
-														with(Bestellung.PARAM_PREIS, preis).build());
-		return bestellungen;
-	}
-	
-	public List<Bestellung> findBestellungenByKundeId(Long id) {
-		final List<Bestellung> bestellungen = dao.findBestellungenByKunde(id);
-		return bestellungen;
-	}
-	
-	private void validateBestellung(Bestellung bestellung, Locale locale, Class<?>... groups) {
-	final Validator validator = ValidatorProvider.getValidator(locale);
-	
-	final Set<ConstraintViolation<Bestellung>> violations = validator.validate(bestellung, groups);
-		if (violations != null && !violations.isEmpty()) {
-			LOGGER.debugf("END createBestellung: %s", violations);
-		throw new BestellungValidationException(bestellung, violations);
-		}
+	@PreDestroy
+	private void preDestroy() {
+		LOGGER.log(FINER, "CDI-faehiges Bean {0} wird geloescht", this);
 	}
 	
 	public Bestellung createBestellung(Bestellung bestellung, Kunde kunde, Locale locale) {
-		if (bestellung == null) {
-			return null;			
+		
+		if (bestellung == null) return null;
+		
+		for (Bestellposition bp : bestellung.getBestellpositionen()) {
+			validateBestellposition(bp, locale, Default.class, PasswordGroup.class);
+			LOGGER.log(FINEST, "Bestellposition: {0}", bp);				
 		}
 		
-		if (TRACE) {
-			for (Bestellposition bp : bestellung.getBestellpositionen()) {
-				LOGGER.tracef("Bestellposition: %s", bp);
-			}
-		}
-			
-			kunde = kv.findKundeByEmail(kunde.getEmail());
-			kunde.addBestellung(bestellung);
-			bestellung.setKunde(kunde);
-			bestellung.setBestellId(KEINE_ID);
-			
-			for (Bestellposition bp : bestellung.getBestellpositionen()) {
-				bp.setPositionId(KEINE_ID);
-			}
-			
-			validateBestellung(bestellung, locale, Default.class);
-			dao.create(bestellung);
-			event.fire(bestellung);
-			
-			return bestellung;
-		}
+		validateBestellung(bestellung, locale, Default.class, PasswordGroup.class);
+		
+		
+		// damit "kunde" dem EntityManager bekannt ("managed") ist
+		kunde = kv.findKundeById(kunde.getIdKunde(), de.shop.kundenverwaltung.dao.KundeDao.FetchType.MIT_BESTELLUNGEN);
+		kunde.addBestellung(bestellung);
+		bestellung.setKunde(kunde);
+		dao.create(bestellung);
+		
+		event.fire(bestellung);
+		return bestellung;
+	}
+	// Fehlerausgabe in Console
+	public Bestellung updateBestellung(Bestellung bestellung, Locale locale) {
+		if (bestellung == null) return null;
+		validateBestellung(bestellung, locale, Default.class, PasswordGroup.class);
+		return dao.update(bestellung);
+	}
 	
-
-	public Bestellung updateBestellung(Bestellung bestellung, Locale locale) { 
-		if (bestellung == null) {
-		return null;
-		}
-		
-		validateBestellung(bestellung, locale, Default.class);
-		
-		final Bestellung vorhandeneBestellung = findBestellungById(bestellung.getBestellId());
-		
-		if 	(vorhandeneBestellung == null) {
-			return null;
-		}
-		
-		bestellung = dao.update(bestellung);
-		
+ 	public List<Bestellung> findAllBestellungen(FetchType fetch, OrderType order) {
+		final List<Bestellung> bestellungen = dao.findAllBestellungen(fetch, order);
+		return bestellungen;
+	}
+ 	
+	public Bestellung findBestellungById(Long id, FetchType fetch) {
+		final Bestellung bestellung = dao.findBestellungById(id, fetch);
 		return bestellung;
 	}
 	
+	public Bestellposition findBestellpositionById(Long id) {
+		final Bestellposition bestellposition = bpdao.findBestellpositionById(id);
+		return bestellposition;
+	}
+	 
+	private void validateBestellung(Bestellung bestellung, Locale locale, Class<?>... groups) {
+		// Werden alle Constraints beim Einfuegen gewahrt?
+		final Validator validator = validatorProvider.getValidator(locale);
+		
+		final Set<ConstraintViolation<Bestellung>> violations = validator.validate(bestellung, groups);
+		if (!violations.isEmpty()) {
+			throw new BestellungValidationException(bestellung, violations);
+		}
+	}
 	
-
+	private void validateBestellposition(Bestellposition bestellposition, Locale locale, Class<?>... groups) {
+		// Werden alle Constraints beim Einfuegen gewahrt?
+		final Validator validator = validatorProvider.getValidator(locale);
+		
+		final Set<ConstraintViolation<Bestellposition>> violations = validator.validate(bestellposition, groups);
+		if (!violations.isEmpty()) {
+			throw new BestellpositionValidationException(bestellposition, violations);
+		}
+	}
 }
-
