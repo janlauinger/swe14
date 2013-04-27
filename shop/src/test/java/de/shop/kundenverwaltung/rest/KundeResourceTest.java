@@ -63,7 +63,7 @@ public class KundeResourceTest extends AbstractResourceTest {
 	public void validate() {
 		assertThat(true, is(true));
 	}
-	
+	@Ignore
 	@Test
 	public void findKundeById() {
 		LOGGER.finer("BEGINN findKundeById");
@@ -87,7 +87,7 @@ public class KundeResourceTest extends AbstractResourceTest {
 		
 		LOGGER.finer("ENDE findKundeById");
 	}
-	
+	@Ignore
 	@Test
 	public void findKundeByIdNichtVorhanden() {
 		LOGGER.finer("BEGINN findKundeByIdNichtVorhanden");
@@ -151,7 +151,7 @@ public class KundeResourceTest extends AbstractResourceTest {
 
 		LOGGER.finer("ENDE findKundenByNachnameNichtVorhanden");
 	}
-	
+	@Ignore
 	@Test
 	public void createKunde() {
 		LOGGER.finer("BEGINN createKunde");

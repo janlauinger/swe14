@@ -9,7 +9,7 @@
 	    <!-- in SWA:
 		<jta-data-source>java:jboss/datasources/ShopDS</jta-data-source>
 		-->
-	    <jta-data-source>java:jboss/datasources/ShopDS</jta-data-source>
+	    <jta-data-source>java:jboss/datasources/Shop2DS</jta-data-source>
 				
 		<!-- Caching von Objekten mit @Cacheable -->
 		<!--
@@ -17,8 +17,8 @@
 		-->
 
 		<!-- Umschalten fuer Hibernate Console -->
-		<shared-cache-mode>NONE</shared-cache-mode>
 		<!--
+		<shared-cache-mode>NONE</shared-cache-mode>
 		-->
 
 		<properties>
@@ -44,8 +44,11 @@
 			<!-- Ab Hibernate 4.1: Tabelle fuer eine emulierte Sequenz anstatt z.B. auto_increment -->
 			<property name="hibernate.id.new_generator_mappings" value="true"/>
 			
-			<!-- Ab Hibernate 4.2: direktes Abspeichern von Entity-Referenzen im L2C, falls die Entities unveraenderlich sind -->
-			<property name="hibernate.cache.use_reference_entries" value="true"/>
+			<!-- Ab Hibernate 4.2: direktes Abspeichern von Entity-Referenzen im L2C, falls die Entities unveraenderlich sind 
+			<property name="hibernate.cache.use_reference_entries" value="true"/> laja1011--> 
+			
+			<!-- laja1011
+			<property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect"/>-->
 			
 			<!-- im Produktivbetrieb auskommentieren -->
 			<property name="hibernate.hbm2ddl.auto" value="create"/>

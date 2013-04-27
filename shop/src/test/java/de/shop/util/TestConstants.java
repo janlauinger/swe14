@@ -1,7 +1,7 @@
 package de.shop.util;
 
 public final class TestConstants {
-	public static final String WEB_PROJEKT = "shop2";
+	public static final String WEB_PROJEKT = "shop";
 	
 	// HTTP-Header
 	public static final String ACCEPT = "Accept";
